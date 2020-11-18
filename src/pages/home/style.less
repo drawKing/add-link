@@ -1,0 +1,95 @@
+.root {
+    display: flex;
+    @height: calc(100vh - 30px);
+
+    :global(.ant-slider-track) {
+        background: transparent;
+    }
+
+    .left {
+        width: 650px;
+        height: @height;
+        border-right: 1px solid rgba(220, 220, 220);
+        padding: 20px 0;
+        display: flex;
+        justify-content: center;
+        overflow: scroll;
+
+        .pic-wrap {
+            width: 400px;
+            height: 650px;
+            cursor: crosshair;
+            margin-top: 50px;
+            overflow: scroll;
+            box-shadow: 2px 2px 6px #DCDCDC;
+            position: relative;
+
+            > img {
+                width: 100%;
+            }
+
+            .pic-drop {
+                width: 100%;
+                position: absolute;
+                z-index: 1;
+                left: 0;
+                top: 0;
+            }
+
+            .rnd {
+                background: rgba(255, 165, 0, .5);
+                border: 1px solid rgba(255, 165, 0, .9);
+                z-index: 100;
+            }
+        }
+    }
+
+    .right {
+        flex: 1;
+        height: @height;
+        padding: 20px 50px 20px 30px;
+        overflow: scroll;
+
+        .btn-list {
+            display: flex;
+            margin-bottom: 30px;
+        }
+
+        .show-bg {
+            background: rgba(255, 165, 0, 0.1)
+        }
+    }
+
+    .operator {
+        position: fixed;
+        right: 8px;
+        bottom: 250px;
+        display: flex;
+        flex-direction: column;
+        background-color: #fff;
+        align-items: center;
+        cursor: pointer;
+        box-shadow: 0 4px 12px 0 rgba(7, 17, 27, 0.1);
+
+        .operator-one {
+            width: 52px;
+            height: 52px;
+            box-sizing: content-box;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .hr {
+            width: 60%;
+            height: 1px;
+            background: #edf1f2;
+        }
+    }
+
+    .help-wrap {
+        > div {
+            margin-bottom: 5px;
+        }
+    }
+}

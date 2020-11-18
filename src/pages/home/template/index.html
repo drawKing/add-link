@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+        .detail {
+            width: 100vw;
+            position: relative;
+        }
+        .detail img {
+            width: 100%;
+            position: absolute;
+            z-index: 1;
+            left: 0;
+            top: 0;
+        }
+        .link {
+            width: 100px;
+            height: 100px;
+            background: #18bfff;
+            position: absolute;
+            left: 100px;
+            top: 100px;
+            z-index: 2;
+        }
+    </style>
+</head>
+<body>
+<div class="detail">
+    <div class="link"></div>
+    <img src="../img/detail1.jpg" />
+</div>
+</body>
+</html>
