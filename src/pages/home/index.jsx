@@ -413,6 +413,20 @@ export default class Home extends Component {
         )
     };
 
+    // 创建 a 标签 跳转 github
+    handleJumpToGit = () => {
+        const link = document.createElement('a');
+
+        link.setAttribute('href', 'https://github.com/drawKing');
+        link.setAttribute('target', '_blank');
+
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+
+        link.click();
+        document.body.removeChild(link);
+    };
+
     render() {
         const {scrollHeight, scrollTop, position: {w, h, l, t}, drawDataSource, curId, curDeleteId, curPic = '', loading, isOnGit, isOnHelp} = this.state;
         const formProps = {
@@ -550,6 +564,26 @@ export default class Home extends Component {
                         pagination={false}
                         rowClassName={(record) => record.id === curId ? 'show-bg' : ''}
                     />
+                </div>
+                <div styleName='operator'>
+                    <Popover content={this.handleShowContent} title="使用帮助" placement='left'>
+                        <div styleName='operator-one' onMouseMove={() => this.setState({isOnHelp: true})} onMouseLeave={() => this.setState({isOnHelp: false})}>
+                            {
+                                !isOnHelp ? <QuestionCircleOutlined style={{fontSize: 18, color: '#D9DDE1'}}/> : <div style={{width: 24}}>使用帮助</div>
+                            }
+                        </div>
+                    </Popover>
+                    <span styleName='hr'/>
+                    <div
+                        styleName='operator-one'
+                        onMouseMove={() => this.setState({isOnGit: true})}
+                        onMouseLeave={() => this.setState({isOnGit: false})}
+                        onClick={this.handleJumpToGit}
+                    >
+                        {
+                            !isOnGit ? <GithubOutlined style={{fontSize: 18, color: '#D9DDE1'}}/> : <div style={{width: 24}}>点击跳转</div>
+                        }
+                    </div>
                 </div>
             </PageContent>
         );
