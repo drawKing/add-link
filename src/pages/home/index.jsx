@@ -17,8 +17,26 @@ import './style.less';
 
 const {Dragger} = Upload;
 
-const LEFT_TO_MIN = 125 + 16;
+const LEFT_TO_MIN = 125 + 16 - 1;
 const TOP_TO_MIN = 70 + 16;
+const rndBottom = {
+    width: '90%',
+    height: 10,
+    bottom: -1,
+    left: '5%'
+};
+const rndBottomRight = {
+    width: 10,
+    height: 10,
+    right: -1,
+    bottom: -1
+};
+const rndRight = {
+    width: 5,
+    height: '90%',
+    top: '5%',
+    right: -1
+};
 
 @config({
     path: '/',
@@ -56,6 +74,7 @@ export default class Home extends Component {
     qualityVal = 1; // 图片质量
     startPos = {x: 0, y: 0}; // 起始位置
     endPos = {x: 0, y: 0}; // 结束位置
+    isClickDown = false; // 在画板中是否按下鼠标
 
     columns = [
         {title: '编号', dataIndex: 'id', width: 80},
@@ -131,8 +150,9 @@ export default class Home extends Component {
         const {position} = this.state;
         const {x, y} = this.startPos;
 
+        this.isClickDown = true;
         this.setState({
-            position: {...position, l: x, t: y, scrollTop: this.state.scrollTop}
+            position: {...position, l: x, t: y, scrollTop: this.state.scrollTop},
         })
     };
 
@@ -140,7 +160,7 @@ export default class Home extends Component {
     handleMouseMove = (e) => {
         const {x: startX, y: startY} = this.startPos;
 
-        if (startX !== 0 && startY !== 0) {
+        if (this.isClickDown) {
             this.endPos = this.dealPosition(e);
 
             const {x, y} = this.endPos;
@@ -171,6 +191,7 @@ export default class Home extends Component {
             position: {w: 0, h: 0, l: 0, t: 0},
             drawDataSource: isDraw ? [...drawDataSource, {id: Math.random().toString().substr(-6), ...position}] : drawDataSource, // 收集所有的框
         });
+        this.isClickDown = false;
         this.startPos = {x: 0, y: 0};
         this.endPos = {x: 0, y: 0};
     };
@@ -189,9 +210,8 @@ export default class Home extends Component {
         cur.l = d.x;
         cur.t = d.y;
 
-        this.setState({
-            drawDataSource: this.state.drawDataSource
-        })
+        this.isClickDown = false;
+        this.setState({drawDataSource: this.state.drawDataSource,})
     };
 
     // 放大缩小具体某个方框时
@@ -316,26 +336,28 @@ export default class Home extends Component {
 
     // 上传前 获取图片 路径等
     handleUploadBefore = (file) => {
-        return new Promise(resolve => {
-            const reader = new FileReader();
+        const reader = new FileReader();
 
-            reader.readAsDataURL(file);
-            reader.onload = () => {
-                const img = document.createElement('img');
+        reader.readAsDataURL(file);
+        reader.onload = () => {
+            const img = document.createElement('img');
 
-                img.src = reader.result;
-                img.onload = () => {
-                    this.setState({curPic: reader.result});
+            img.src = reader.result;
+            img.onload = () => {
+                this.setState({
+                    curPic: reader.result,
+                    drawDataSource: []
+                });
 
-                    this.copyCurPic = reader.result;
-                    this.form.setFieldsValue({
-                        size: this.handleTransformSize(file.size)
-                    });
+                this.copyCurPic = reader.result;
+                this.form.setFieldsValue({
+                    size: this.handleTransformSize(file.size),
+                    radio: 100,
+                });
 
-                    message.success('上传成功~');
-                };
+                message.success('上传成功~');
             };
-        });
+        };
     };
 
     // 修改压缩比例时，动态更新图片清晰度
@@ -355,9 +377,10 @@ export default class Home extends Component {
             ctx.drawImage(img, 0, 0);
 
             // 压缩图片，将图片 base64 字节转化成 kb
-            const base64 = canvas.toDataURL("image/jpeg", val / 100);
+            let base64 = canvas.toDataURL("image/jpeg", val / 100);
+
             const strLen = base64.replace('data:image/jpeg;base64,', '').length;
-            const fileLen = strLen - (strLen / 8) * 2;
+            const fileLen = strLen - (strLen / 8) * 2; // 8 位一个字节
 
             this.qualityVal = val / 100;
             this.form.setFieldsValue({
@@ -399,15 +422,15 @@ export default class Home extends Component {
                 </div>
                 <div style={commonStyleParent}>
                     <div style={commonStyle}><b>2.</b> 按住鼠标拖动所选区域，<b>在松开鼠标后也可对所画区域进行移动及缩放。</b></div>
-                    <img src={help1} alt="help1" style={{width: 400}} />
+                    <img src={help1} alt="help1" style={{width: 400}}/>
                 </div>
                 <div style={commonStyleParent}>
                     <div style={commonStyle}><b>3.</b> 在右侧表格填写<b>跳转链接及裁切比例（默认300）</b>，且可对所选区域进行<b>删除</b>。</div>
-                    <img src={help2} alt="help2" style={{width: 400}} />
+                    <img src={help2} alt="help2" style={{width: 400}}/>
                 </div>
                 <div style={commonStyleParent}>
                     <div style={commonStyle}><b>4.</b> 点击导出，下载到本地的文件包括 <b>index.html 和 images 文件夹</b>。</div>
-                    <img src={help3} alt="help3" style={{width: 400}} />
+                    <img src={help3} alt="help3" style={{width: 400}}/>
                 </div>
             </div>
         )
@@ -456,36 +479,40 @@ export default class Home extends Component {
                                     onMouseDown={this.handleMouseDown}
                                     onMouseMove={this.handleMouseMove}
                                     onMouseUp={this.handleMouseUp}
-                                />
-
+                                >
+                                    {/*  所有的框  */}
+                                    {
+                                        drawDataSource.map(({w, h, l, t, id}) => (
+                                            <Rnd
+                                                size={{width: w, height: h}}
+                                                position={{x: l, y: t}}
+                                                key={id}
+                                                styleName='rnd'
+                                                style={{background: id === curDeleteId ? 'rgba(255,0,0,.5)' : ''}}
+                                                onDragStart={() => this.setState({curId: id}, () => this.isClickDown = false)}
+                                                onDragStop={(e, d) => this.handleDragStop(e, d, id)}
+                                                onResizeStop={(e, direction, ref, delta, position) => this.handleResizeStop(e, direction, ref, delta, position, id)}
+                                                enableResizing={{
+                                                    bottom: true,
+                                                    bottomLeft: false,
+                                                    bottomRight: true,
+                                                    left: false,
+                                                    right: true,
+                                                    top: false,
+                                                    topLeft: false,
+                                                    topRight: false
+                                                }}
+                                                resizeHandleStyles={{
+                                                    right: rndRight,
+                                                    bottomRight: rndBottomRight,
+                                                    bottom: rndBottom,
+                                                }}
+                                            />
+                                        ))
+                                    }
+                                </div>
                                 {/* 画出来的方框 */}
                                 <div style={{position: 'absolute', width: w, height: h, left: l, top: t + scrollTop, background: 'rgba(255,215,0,.5)'}}/>
-
-                                {/*  所有的框  */}
-                                {
-                                    drawDataSource.map(({w, h, l, t, id}) => (
-                                        <Rnd
-                                            size={{width: w, height: h}}
-                                            position={{x: l, y: t}}
-                                            key={id}
-                                            styleName='rnd'
-                                            style={{background: id === curDeleteId ? 'rgba(255,0,0,.5)' : ''}}
-                                            onDragStart={() => this.setState({curId: id})}
-                                            onDragStop={(e, d) => this.handleDragStop(e, d, id)}
-                                            onResizeStop={(e, direction, ref, delta, position) => this.handleResizeStop(e, direction, ref, delta, position, id)}
-                                            enableResizing={{
-                                                bottom: true,
-                                                bottomLeft: false,
-                                                bottomRight: true,
-                                                left: false,
-                                                right: true,
-                                                top: false,
-                                                topLeft: false,
-                                                topRight: false
-                                            }}
-                                        />
-                                    ))
-                                }
                             </> : <Dragger {...props}>
                                 <p className="ant-upload-drag-icon">
                                     <PictureOutlined/>
@@ -524,8 +551,19 @@ export default class Home extends Component {
                                 {label: '示例图片 1', value: detail}
                             ]}
                             onChange={(val) => this.setState({curPic: val}, () => {
+                                if (!val) {
+                                    this.form.setFieldsValue({
+                                        size: '',
+                                        radio: 100
+                                    });
+                                    this.setState({drawDataSource: []})
+                                } else {
+                                    this.form.setFieldsValue({
+                                        size: '0.64 MB', // 示例图片写死，不再去重新计算了
+                                        radio: 100,
+                                    })
+                                }
                                 this.copyCurPic = val;
-                                this.form.setFieldsValue({size: '0.64 MB'}) // 示例图片写死，不再去重新计算了
                             })}
                         />
                         <FormElement
@@ -534,7 +572,7 @@ export default class Home extends Component {
                             name="radio"
                             onChange={this.handleChangeRadio}
                         >
-                            <Slider tooltipVisible/>
+                            <Slider tooltipVisible disabled={!curPic}/>
                         </FormElement>
                         <FormElement
                             {...formProps}
@@ -548,7 +586,7 @@ export default class Home extends Component {
                             <FormElement
                                 {...formProps}
                                 width={300}
-                                label="裁切比例"
+                                label="裁切高度"
                                 name="cutRadio"
                                 type='number'
                                 placeholder='裁剪后每张图片的高度'
